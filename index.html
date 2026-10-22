@@ -1,0 +1,852 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Генератор заданий</title>
+<meta name="description" content="Бренд, проблема и условия для креативного упражнения за один клик">
+<meta property="og:title" content="Генератор заданий">
+<meta property="og:description" content="Бренд, проблема и условия для креативного упражнения за один клик">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#2340FF">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%232340FF'/%3E%3Crect x='7' y='7' width='18' height='18' fill='%23D4FF3A'/%3E%3Crect x='13' y='13' width='6' height='6' fill='%230B0B3B'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;700&family=Tektur:wght@600;800&family=Tiny5&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ground: #2340FF;
+    --ground-glow: #96ACFF;
+    --on-ground: #FFFFFF;
+    --on-ground-muted: #DDE2FF;
+    --accent: #D4FF3A;
+    --on-accent: #0B0B3B;
+    --paper: #F4F4EE;
+    --ink: #0B0B3B;
+    --ink-muted: #44447A;
+    --ink-faint: #6A6A8A;
+    --signal: #2340FF;
+    --tape-accent: rgba(212, 255, 58, 0.85);
+    --shadow-hard: 8px 8px 0 #0B0B3B;
+    --shadow-hard-s: 4px 4px 0 #0B0B3B;
+    --shadow-note: 4px 6px 0 rgba(11, 11, 59, 0.35);
+    --display: "Tektur", "Onest", sans-serif;
+    --text: "Onest", system-ui, sans-serif;
+    --label: "Tiny5", "Onest", monospace;
+    --tilt: -1deg;
+  }
+  :root[data-theme="night"] {
+    --ground: #0E1033;
+    --ground-glow: #3D5BFF;
+    --on-ground: #F2F3FF;
+    --on-ground-muted: #B9C0EE;
+    --shadow-hard: 8px 8px 0 #3D5BFF;
+    --shadow-hard-s: 4px 4px 0 #3D5BFF;
+    --shadow-note: 4px 6px 0 rgba(0, 0, 0, 0.45);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; overflow-x: clip; }
+  body {
+    background: var(--ground);
+    color: var(--on-ground);
+    font-family: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+    transition: background-color .3s;
+  }
+  body::before {
+    content: "";
+    position: fixed; inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: .22;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1.4 -0.2'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+  button { font: inherit; color: inherit; }
+  :focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; }
+
+  .wrap {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 48px 48px 64px;
+    position: relative;
+  }
+
+  /* --- шапка --- */
+  .top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 24px;
+    margin-bottom: 40px;
+  }
+  .brandmark {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: .02em;
+    color: var(--on-ground-muted);
+    margin-bottom: 14px;
+  }
+  h1 {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: clamp(36px, 6vw, 64px);
+    line-height: 1;
+    text-transform: uppercase;
+    margin: 0 0 14px;
+  }
+  h1 .hl { color: var(--accent); }
+  .lead {
+    font-size: 18px;
+    line-height: 1.45;
+    font-weight: 500;
+    color: var(--on-ground-muted);
+    margin: 0;
+    max-width: 520px;
+  }
+  .theme-btn {
+    flex-shrink: 0;
+    background: none;
+    border: 2px solid var(--on-ground);
+    color: var(--on-ground);
+    font-family: var(--label);
+    font-size: 16px;
+    padding: 8px 12px 7px;
+    cursor: pointer;
+  }
+  .theme-btn:hover { background: var(--on-ground); color: var(--ground); }
+
+  /* --- переключатели строк --- */
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 36px;
+  }
+  .chips-label {
+    font-family: var(--label);
+    font-size: 16px;
+    color: var(--on-ground-muted);
+    margin-right: 6px;
+  }
+  .chip {
+    background: none;
+    border: 2px solid var(--on-ground-muted);
+    color: var(--on-ground-muted);
+    font-family: var(--text);
+    font-size: 14px;
+    font-weight: 500;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: transform .15s;
+  }
+  .chip[aria-pressed="true"] {
+    background: var(--paper);
+    border-color: var(--paper);
+    color: var(--ink);
+  }
+  .chip:hover { transform: rotate(-1.5deg); }
+
+  /* --- сцена --- */
+  .stage { position: relative; }
+  .glow {
+    position: absolute;
+    width: 520px; height: 520px;
+    right: -180px; top: -120px;
+    background: radial-gradient(circle, var(--ground-glow) 0%, transparent 65%);
+    opacity: .45;
+    z-index: -1;
+    pointer-events: none;
+  }
+  .orbit {
+    position: absolute;
+    right: -150px; top: -70px;
+    width: 560px; height: 300px;
+    z-index: -1;
+    pointer-events: none;
+    transform: rotate(-12deg);
+  }
+  .orbit .dot { animation: spin 26s linear infinite; transform-origin: 280px 150px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .card-wrap { position: relative; }
+  .card {
+    position: relative;
+    max-width: min(640px, calc(100% - 170px));
+    background: var(--paper);
+    color: var(--ink);
+    border: 4px solid var(--ink);
+    box-shadow: var(--shadow-hard);
+    padding: 28px 32px 18px;
+    transform: rotate(var(--tilt));
+    transition: transform .35s cubic-bezier(.3,1.4,.5,1);
+  }
+  .card-head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-bottom: 10px;
+  }
+  .card-num {
+    font-family: var(--label);
+    font-size: 32px;
+    color: var(--signal);
+    line-height: 1;
+  }
+  .card-sub {
+    font-family: var(--label);
+    font-size: 16px;
+    color: var(--ink-faint);
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 128px 1fr 40px;
+    align-items: start;
+    gap: 12px;
+    padding: 14px 0;
+    border-top: 2px dashed rgba(11, 11, 59, .18);
+  }
+  .row:first-of-type { border-top: 0; }
+  .row[hidden] { display: none; }
+  .row-label {
+    font-family: var(--label);
+    font-size: 16px;
+    color: var(--ink-faint);
+    padding-top: 6px;
+  }
+  .row-value {
+    text-align: left;
+    background: none;
+    border: 0;
+    padding: 2px 6px;
+    margin: 0 -6px;
+    cursor: pointer;
+    color: var(--ink);
+    font-family: var(--text);
+    font-size: 19px;
+    font-weight: 500;
+    line-height: 1.35;
+    transition: background-color .15s;
+  }
+  .row-value:hover { background: rgba(35, 64, 255, .07); }
+  .row[data-key="brand"] .row-value {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 28px;
+    line-height: 1.1;
+  }
+  .row-value.rolling { color: var(--ink-faint); }
+  .row-value .hint {
+    display: block;
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--ink-muted);
+    margin-top: 6px;
+    line-height: 1.45;
+  }
+  .row-value .seed {
+    display: block;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--signal);
+    margin-top: 4px;
+  }
+  .row-value .lesson {
+    font-family: var(--label);
+    font-size: 16px;
+    color: var(--signal);
+    margin-left: 8px;
+    font-weight: 400;
+  }
+  .lock {
+    width: 36px; height: 36px;
+    display: grid; place-items: center;
+    background: none;
+    border: 2px solid transparent;
+    color: var(--ink-faint);
+    cursor: pointer;
+    padding: 0;
+  }
+  .lock:hover { border-color: var(--ink); color: var(--ink); }
+  .lock[aria-pressed="true"] {
+    background: var(--ink);
+    color: var(--accent);
+    border-color: var(--ink);
+  }
+  .lock svg { width: 18px; height: 18px; }
+
+  /* --- записка с раундом --- */
+  .note {
+    position: absolute;
+    top: 30px; left: calc(min(640px, 100% - 170px) - 40px);
+    width: 210px;
+    background: var(--paper);
+    color: var(--ink);
+    padding: 26px 18px 16px;
+    box-shadow: var(--shadow-note);
+    transform: rotate(5deg);
+    z-index: 2;
+  }
+  .note[hidden] { display: none; }
+  .note::before {
+    content: "";
+    position: absolute;
+    top: -12px; left: 50%;
+    width: 96px; height: 26px;
+    background: var(--tape-accent);
+    transform: translateX(-50%) rotate(-4deg);
+  }
+  .note-label {
+    font-family: var(--label);
+    font-size: 16px;
+    color: var(--ink-faint);
+    margin-bottom: 8px;
+  }
+  .note-round {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: none; border: 0; padding: 0;
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 21px;
+    line-height: 1.1;
+    color: var(--ink);
+    cursor: pointer;
+    margin-bottom: 14px;
+  }
+  .note-round:hover { color: var(--signal); }
+  .timer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .timer-time {
+    font-family: var(--label);
+    font-size: 32px;
+    color: var(--signal);
+    line-height: 1;
+  }
+  .timer-btn {
+    background: none;
+    border: 2px solid var(--ink);
+    font-family: var(--label);
+    font-size: 16px;
+    padding: 6px 9px 5px;
+    cursor: pointer;
+    color: var(--ink);
+  }
+  .timer-btn:hover { background: var(--ink); color: var(--paper); }
+  .note.done { animation: wobble .5s ease 3; }
+  .note.done .timer-time { color: var(--ink); }
+  @keyframes wobble {
+    0%,100% { transform: rotate(5deg); }
+    30% { transform: rotate(9deg); }
+    60% { transform: rotate(2deg); }
+  }
+
+  /* --- кнопки --- */
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px;
+    margin-top: 44px;
+  }
+  .btn {
+    border: 4px solid var(--ink);
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 18px;
+    padding: 14px 22px;
+    cursor: pointer;
+    box-shadow: var(--shadow-hard-s);
+    transition: transform .1s, box-shadow .1s;
+  }
+  .btn:hover { transform: translate(-1px, -1px) rotate(-1deg); box-shadow: 5px 5px 0 var(--ink); }
+  .btn:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--ink); }
+  :root[data-theme="night"] .btn:hover { box-shadow: 5px 5px 0 #3D5BFF; }
+  :root[data-theme="night"] .btn:active { box-shadow: 1px 1px 0 #3D5BFF; }
+  .btn-main {
+    background: var(--accent);
+    color: var(--on-accent);
+    font-size: 22px;
+    padding: 18px 28px;
+    text-transform: uppercase;
+  }
+  .btn:disabled { opacity: .45; cursor: default; transform: none; }
+  .key-hint {
+    font-family: var(--label);
+    font-size: 16px;
+    color: var(--on-ground-muted);
+  }
+
+  footer {
+    margin-top: 64px;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-size: 13px;
+    color: var(--on-ground-muted);
+  }
+  footer .brandmark { margin: 0; font-size: 14px; }
+
+  @media (max-width: 720px) {
+    .wrap { padding: 32px 16px 48px; }
+    .top { flex-direction: column-reverse; gap: 16px; }
+    .theme-btn { align-self: flex-end; }
+    .card { padding: 22px 18px 12px; max-width: none; }
+    .row { grid-template-columns: 1fr 40px; gap: 4px 8px; }
+    .row-label { grid-column: 1 / -1; padding-top: 0; }
+    .row[data-key="brand"] .row-value { font-size: 24px; }
+    .row-value { font-size: 17px; }
+    .note {
+      position: relative;
+      top: auto; left: auto;
+      margin: -18px 12px 0 auto;
+    }
+    .orbit, .glow { right: -320px; }
+    .actions { margin-top: 32px; }
+    .btn-main { width: 100%; }
+    .key-hint { display: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div>
+      <div class="brandmark">iguana.work</div>
+      <h1>Генератор <span class="hl">заданий</span></h1>
+      <p class="lead">Бренд, проблема и условия для упражнения. Нажми на строку, чтобы перебросить только её, замок оставит её на месте</p>
+    </div>
+    <button class="theme-btn" id="themeBtn" type="button">НОЧЬ</button>
+  </header>
+
+  <div class="chips" id="chips">
+    <span class="chips-label">В ЗАДАНИИ</span>
+  </div>
+
+  <section class="stage">
+    <div class="glow"></div>
+    <svg class="orbit" viewBox="0 0 560 300" aria-hidden="true">
+      <ellipse cx="280" cy="150" rx="270" ry="120" fill="none" stroke="var(--on-ground)" stroke-opacity=".4" stroke-width="1.2"/>
+      <g class="dot"><circle cx="550" cy="150" r="7" fill="var(--accent)"/></g>
+      <path d="M40 70 L44 82 L56 86 L44 90 L40 102 L36 90 L24 86 L36 82 Z" fill="var(--on-ground)" opacity=".8"/>
+    </svg>
+
+    <div class="card-wrap">
+    <article class="card" id="card" aria-live="polite">
+      <div class="card-head">
+        <span class="card-num" id="cardNum">01</span>
+        <span class="card-sub">ЗАДАНИЕ</span>
+      </div>
+      <div id="rows"></div>
+    </article>
+
+      <aside class="note" id="note">
+        <div class="note-label">РАУНД</div>
+        <button class="note-round" id="roundBtn" type="button" title="Перебросить раунд"></button>
+        <div class="timer">
+          <span class="timer-time" id="timerTime">10:00</span>
+          <button class="timer-btn" id="timerBtn" type="button">СТАРТ</button>
+        </div>
+      </aside>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-main" id="newBtn" type="button">Новое задание</button>
+      <button class="btn" id="backBtn" type="button" disabled>Назад</button>
+      <button class="btn" id="copyBtn" type="button">Скопировать</button>
+      <span class="key-hint">ИЛИ ПРОБЕЛ</span>
+    </div>
+  </section>
+
+  <footer>
+    <span class="brandmark">iguana.work</span>
+    <span>Номера уроков по курсу BZIK How to Create 3.0</span>
+  </footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---------- словари ----------
+  const OBJECTS = ["зонт","улей","маяк","будильник","аквариум","компас","пазл","шахматы","термос","воздушный шар","ключ","свеча","паутина","лифт","кактус","радио","зеркало","губка","светофор","батарейка","оригами","снеговик","магнит","песочные часы","гамак","барабан","лупа","якорь","чемодан","игральный кубик","фонарик","почтовый ящик","карусель","мыльный пузырь","глобус","вешалка","клей","шлагбаум","рюкзак","качели","пылесос","подкова","матрёшка","парашют","скрепка"];
+  const WORDS = ["утро","соль","очередь","поезд","зима","бабушка","экзамен","лифт","дождь","свадьба","ремонт","сосед","отпуск","понедельник","шум","ключи","сон","пробка","обед","день рождения"];
+  const WORLDS = ["средневековый замок","космическая станция","цирк шапито","школа","аэропорт","театр","рыцарский орден","пиратский корабль","детский лагерь","монастырь","телешоу","зоопарк","библиотека","ферма","железная дорога","олимпиада","свадьба","больница","подводная лодка","рок-фестиваль"];
+
+  const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+  const pickN = (arr, n) => {
+    const copy = arr.slice(), out = [];
+    while (out.length < n && copy.length) out.push(copy.splice(Math.floor(Math.random() * copy.length), 1)[0]);
+    return out;
+  };
+
+  const DATA = {
+    brand: ["Семейная пекарня у метро","Барбершоп в спальном районе","Приложение для изучения корейского","Детская стоматология","Шиномонтаж","Онлайн-школа программирования для взрослых","Магазин настольных игр","Ветклиника","Фермерская сыроварня","Банк для подростков","Сервис аренды самокатов","Районная библиотека","Кофейня у бизнес-центра","Йога-студия","Химчистка","Бренд носков","Музей истории города","Шаурмичная","Автосалон подержанных машин","Приложение для медитаций","Цветочный магазин","Провайдер домашнего интернета","Цирк","Секонд-хенд","Клининговая компания","Курсы английского для пенсионеров","Магазин сантехники","Газировка из детства, которую перезапускают","Зоомагазин","Мобильная игра «три в ряд»","Футбольный клуб второй лиги","Коворкинг","Служба такси","Корм для кошек","Оптика","Антикафе","Марка пельменей","Приют для собак","Типография","Аптека у дома","Каршеринг","Театр кукол","Магазин виниловых пластинок","Строительный гипермаркет","Ювелирная мастерская","Прачечная самообслуживания","Фитнес-клуб 24/7","Мебельная фабрика","Зубная паста","Сервис аудиокниг","Кинотеатр в торговом центре","Клуб горных походов","Кондитерская с тортами на заказ","Садовый центр","Магазин электроники","Чайная","Городская баня","Доставка продуктов","Маркетплейс хендмейда","Лазертаг-клуб","Нотариус","Университет","Бренд пледов","Автомойка","Школа танцев","Почта"],
+    pain: ["Люди приходят один раз и не возвращаются","О нём никто не знает даже в своём районе","Все уверены, что там дорого","Молодёжь считает бренд скучным","В будни пусто, в выходные очередь","У конкурента через дорогу то же самое и дешевле","Люди забывают, что пора прийти снова","Клиенты стесняются задавать вопросы","Продукт хороший, но выглядит устаревшим","Покупают только по акции","Никто не оставляет отзывы","Переехали на новый адрес, старые клиенты потерялись","Сотрудники уходят через месяц","Вышла новинка, а все берут старое","Гостей бесит долгое ожидание","Никто не понимает, чем он отличается от других","Клиенты приходят, но не подписываются в соцсетях","Завирусился плохой отзыв","Сезонный спад, полгода тишины","Аудитория стареет вместе с брендом","Продукт полезный, но скучный","Люди боятся идти в первый раз","Средний чек слишком низкий","Приложение скачивают и удаляют через два дня","В соцсетях 300 подписчиков и тишина","Нужно собрать людей на открытие","Клиенты путают название","Все знают один продукт, а их десять","Внутри нечего сфотографировать","Конкурент вышел с громкой рекламой","Покупают только в подарок, себе никогда","Люди не дочитывают и не досматривают","Бренд ассоциируется с чем-то неловким"],
+    audience: ["Первокурсники","Молодые родители","Пенсионеры, которые осваивают смартфон","Айтишники на удалёнке","Подростки 14–16 лет","Владельцы собак","Туристы на один день","Офисные сотрудники в обед","Дачники","Геймеры","Те, кто только переехал в город","Бабушки с внуками","Курьеры","Фанаты аниме","Скептики, которые не верят рекламе","Те, кто всё покупает на маркетплейсах","Спортсмены-любители","Интроверты","Семьи с тремя детьми","Малый бизнес по соседству","Водители","Ночные совы","Пары на первом свидании","Коллекционеры","Те, кто ненавидит звонить по телефону","Экспаты","Мамы в декрете","Школьные учителя","Блогеры с тысячей подписчиков","Те, кто всё откладывает на понедельник","Люди, которые переезжают каждый год","Сотрудники ночных смен"],
+    format: ["Рилс до 30 секунд","Наружка у метро","Упаковка","Поп-ап на один день","Квест по городу","Мерч","Коллаборация с другим брендом","Пост в Threads","Спецпроект со СМИ","Офлайн-ивент","Интеграция у стримера","Программа лояльности","Партизанская акция на улице","Telegram-бот","Витрина","Чек и всё, что лежит на кассе","Лендинг на один экран","Email-рассылка","Радиоролик 15 секунд","Браузерная игра","AR-маска","Письмо от руки","Вывеска","Форма сотрудников","Меню или прайс","Карточка товара на маркетплейсе","Выпуск подкаста","Набор стикеров","ТВ-ролик 15 секунд","Флешмоб","Звук или джингл","Серия из трёх постов"],
+    limit: ["Бюджет 0 ₽","Без слов","Без людей в кадре","Нельзя показывать продукт","Бренд называем только в финале","Всё делается за один день","Снято на один телефон","Только чёрно-белое","3 секунды","Только один цвет","Без юмора","Только через звук","Одна локация","Без скидок и призов","Обязательно участвует владелец","Должно поместиться на визитку","Только текст","В эстетике 90-х","В главной роли предмет","Одним кадром без монтажа","Человек должен что-то сделать руками","Работает без интернета","Смешно и бабушке, и внуку","Только то, что уже есть в помещении","Идея живёт минимум год","Хочется переслать другу","Запрещено слово «лучший»","Всё в рифму","Без экрана","Масштаб целого города","Помещается в ладонь","100 человек одновременно","Конкурент тоже участвует","Без обещаний","Должно работать в темноте","Только для левшей","Наоборот: начинаем с финала"],
+    method: [
+      { name: "«А что если?»", lesson: "1.4", hint: "Странное условие между задачей и решением, потом приземляем",
+        seed: () => "Начни с: а что если " + pick(["это длится год","участники не могут говорить","всё происходит ночью","главный герой ребёнок","продукт исчезает","это незаконно на Луне","всё наоборот"]) },
+      { name: "Ассоциации", lesson: "3.1", hint: "Цепочка свободных слов, последнее возвращаем к задаче",
+        seed: () => "Стартовое слово: " + pick(WORDS) },
+      { name: "Ящик идей", lesson: "3.1", hint: "Параметры объекта × варианты, собираем комбинации",
+        seed: () => "Параметры: " + pickN(["цвет","материал","форма","звук","размер","место","время","герой","запах"], 3).join(", ") },
+      { name: "Аналогии", lesson: "3.1", hint: "Переносим структуру чужого мира на бренд",
+        seed: () => "Мир: " + pick(WORLDS) },
+      { name: "Синектика", lesson: "3.2", hint: "Соединяем несовместимое через общие свойства",
+        seed: () => "Далёкий объект: " + pick(OBJECTS) },
+      { name: "Провокации", lesson: "3.2", hint: "Абсурдное утверждение, потом «как это возможно?»",
+        seed: () => "Провокация: люди используют продукт " + pick(["вместо подушки","как валюту","только раз в жизни","на похоронах кактуса","в темноте","задом наперёд","чтобы помириться"]) },
+      { name: "Фокальные объекты", lesson: "3.2", hint: "Свойства случайных слов переносим на объект",
+        seed: () => "Слова: " + pickN(OBJECTS, 3).join(", ") },
+      { name: "Франкенштейн", lesson: "2", hint: "Механика отсюда, дизайн оттуда, герои ещё откуда-то",
+        seed: () => "Механику берём из: " + pick(["тетрис","лотерея","свидание вслепую","кулинарное шоу","экзамен","охота за сокровищами","караоке","аукцион"]) },
+      { name: "SCAMPER", lesson: "4.1", hint: "Режем задачу на блоки, гоняем блок по буквам",
+        seed: () => "Буквы: " + pickN(["S (заменить)","C (добавить)","M (гиперболизировать)","P (другое применение)","E (убрать)","R (перевернуть)"], 2).join(", ") },
+      { name: "ТРИЗ", lesson: "4.2", hint: "Противоречие «хочу X, но мешает Y», ИКР, принципы",
+        seed: () => "Принципы: " + pickN(["дробление","универсальность","предварительное действие","обратное действие","динамичность","другое измерение","вред в пользу","частичное действие","отбрасывание","композиты"], 3).join(", ") },
+      { name: "Шесть шляп", lesson: "4.3", hint: "Факты, эмоции, риски, польза, креатив, итог. По одному режиму за раз",
+        seed: () => "Начни с " + pick(["белой: три факта о ЦА","красной: что бесит в категории","чёрной: чего боится клиент"]) },
+      { name: "Сначала инсайт", lesson: "4.4", hint: "Я + ситуация + скрытая эмоция, потом идеи",
+        seed: () => "Ищи в: " + pick(["отзывах на картах","жалобах на маркетплейсе","анонимных форумах","комментариях к рекламе конкурента"]) },
+      { name: "Свободный брейншторм", lesson: "1.6", hint: "Без критики, количество важнее качества",
+        seed: () => "Разогрев: 3 самые плохие идеи за минуту" }
+    ],
+    round: [
+      { text: "10 идей за 10 минут", min: 10 },
+      { text: "5 идей за 5 минут", min: 5 },
+      { text: "20 идей за 15 минут", min: 15 },
+      { text: "3 идеи за 3 минуты", min: 3 },
+      { text: "15 идей за 10 минут", min: 10 },
+      { text: "1 идея за 15 минут, но докрученная", min: 15 },
+      { text: "7 идей за 7 минут", min: 7 },
+      { text: "12 идей за 8 минут", min: 8 }
+    ]
+  };
+
+  const SLOTS = [
+    { key: "brand",    label: "БРЕНД",       chip: null },
+    { key: "pain",     label: "ПРОБЛЕМА",    chip: "Проблема" },
+    { key: "audience", label: "ДЛЯ КОГО",    chip: "Для кого" },
+    { key: "format",   label: "ФОРМАТ",      chip: "Формат" },
+    { key: "limit",    label: "ОГРАНИЧЕНИЕ", chip: "Ограничение" },
+    { key: "method",   label: "МЕТОД",       chip: "Метод" }
+  ];
+  const TILTS = [-2, 1.5, -0.5, 2.5, -1.2, 0.8];
+
+  // ---------- состояние ----------
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem("ig-gen-" + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+    set(k, v) { try { localStorage.setItem("ig-gen-" + k, JSON.stringify(v)); } catch (e) {} }
+  };
+  const state = {
+    values: {},     // key -> значение (строка или {m, seed})
+    round: null,
+    locked: {},
+    enabled: Object.assign({ pain: true, audience: true, format: true, limit: true, method: true, round: true }, store.get("enabled", {})),
+    n: 0,
+    history: [],
+    tilt: -1
+  };
+  const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // ---------- DOM ----------
+  const $ = (id) => document.getElementById(id);
+  const rowsEl = $("rows"), chipsEl = $("chips"), card = $("card"), note = $("note");
+  const rowEls = {};
+
+  const LOCK_OPEN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><rect x="4" y="11" width="16" height="10"/><path d="M8 11V7a4 4 0 0 1 7.5-2"/></svg>';
+  const LOCK_CLOSED = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square"><rect x="4" y="11" width="16" height="10"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
+
+  SLOTS.forEach((s) => {
+    const row = document.createElement("div");
+    row.className = "row";
+    row.dataset.key = s.key;
+    row.innerHTML =
+      '<div class="row-label">' + s.label + '</div>' +
+      '<button class="row-value" type="button" title="Перебросить"></button>' +
+      '<button class="lock" type="button" aria-pressed="false" aria-label="Закрепить: ' + s.label.toLowerCase() + '">' + LOCK_OPEN + '</button>';
+    rowsEl.appendChild(row);
+    const value = row.querySelector(".row-value");
+    const lock = row.querySelector(".lock");
+    value.addEventListener("click", () => { pushHistory(); rollSlot(s.key, true); });
+    lock.addEventListener("click", () => {
+      state.locked[s.key] = !state.locked[s.key];
+      lock.setAttribute("aria-pressed", state.locked[s.key] ? "true" : "false");
+      lock.innerHTML = state.locked[s.key] ? LOCK_CLOSED : LOCK_OPEN;
+    });
+    rowEls[s.key] = { row, value, lock };
+
+    if (s.chip) {
+      const chip = document.createElement("button");
+      chip.className = "chip";
+      chip.type = "button";
+      chip.textContent = s.chip;
+      chip.setAttribute("aria-pressed", state.enabled[s.key] ? "true" : "false");
+      chip.addEventListener("click", () => toggleSlot(s.key, chip));
+      chipsEl.appendChild(chip);
+    }
+  });
+  const roundChip = document.createElement("button");
+  roundChip.className = "chip";
+  roundChip.type = "button";
+  roundChip.textContent = "Раунд с таймером";
+  roundChip.setAttribute("aria-pressed", state.enabled.round ? "true" : "false");
+  roundChip.addEventListener("click", () => toggleSlot("round", roundChip));
+  chipsEl.appendChild(roundChip);
+
+  function toggleSlot(key, chip) {
+    state.enabled[key] = !state.enabled[key];
+    chip.setAttribute("aria-pressed", state.enabled[key] ? "true" : "false");
+    store.set("enabled", state.enabled);
+    applyVisibility();
+  }
+  function applyVisibility() {
+    SLOTS.forEach((s) => { if (s.chip) rowEls[s.key].row.hidden = !state.enabled[s.key]; });
+    note.hidden = !state.enabled.round;
+    if (!state.enabled.round) stopTimer();
+  }
+
+  // ---------- рендер ----------
+  function textOf(key, v) {
+    if (key === "method") return v.m.name + " (" + v.m.lesson + ")";
+    return v;
+  }
+  function htmlOf(key, v) {
+    const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+    if (key === "method") {
+      return esc(v.m.name) + '<span class="lesson">' + esc(v.m.lesson) + '</span>' +
+        '<span class="hint">' + esc(v.m.hint) + '</span>' +
+        '<span class="seed">' + esc(v.seed) + '</span>';
+    }
+    return esc(v);
+  }
+  function makeValue(key, current) {
+    if (key === "method") {
+      let m;
+      do { m = pick(DATA.method); } while (current && m === current.m && DATA.method.length > 1);
+      return { m, seed: m.seed() };
+    }
+    let v;
+    do { v = pick(DATA[key]); } while (v === current && DATA[key].length > 1);
+    return v;
+  }
+
+  const timers = {};
+  function paint(key, animate) {
+    const el = rowEls[key].value;
+    const finalHtml = htmlOf(key, state.values[key]);
+    clearInterval(timers[key]);
+    if (!animate || reduceMotion) { el.classList.remove("rolling"); el.innerHTML = finalHtml; return; }
+    let i = 0;
+    const steps = 5 + Math.floor(Math.random() * 3);
+    el.classList.add("rolling");
+    timers[key] = setInterval(() => {
+      i++;
+      if (i >= steps) {
+        clearInterval(timers[key]);
+        el.classList.remove("rolling");
+        el.innerHTML = finalHtml;
+        return;
+      }
+      const fake = key === "method" ? pick(DATA.method).name : pick(DATA[key]);
+      el.textContent = fake;
+    }, 45);
+  }
+
+  function rollSlot(key, animate) {
+    state.values[key] = makeValue(key, state.values[key]);
+    paint(key, animate);
+    nudgeCard();
+  }
+
+  function setRound(r) {
+    state.round = r;
+    $("roundBtn").textContent = r.text;
+    resetTimer();
+  }
+  function rollRound() {
+    let r;
+    do { r = pick(DATA.round); } while (r === state.round);
+    setRound(r);
+  }
+
+  function nudgeCard() {
+    let t;
+    do { t = pick(TILTS); } while (t === state.tilt);
+    state.tilt = t;
+    card.style.setProperty("--tilt", t + "deg");
+  }
+
+  function newTask(animate) {
+    pushHistory();
+    SLOTS.forEach((s) => {
+      if (!state.locked[s.key] || !state.values[s.key]) {
+        state.values[s.key] = makeValue(s.key, state.values[s.key]);
+        paint(s.key, animate);
+      }
+    });
+    rollRound();
+    state.n++;
+    $("cardNum").textContent = String(state.n).padStart(2, "0");
+    nudgeCard();
+  }
+
+  // ---------- история ----------
+  function snapshot() {
+    return { values: Object.assign({}, state.values), round: state.round, n: state.n };
+  }
+  function pushHistory() {
+    if (!state.values.brand) return;
+    state.history.push(snapshot());
+    if (state.history.length > 30) state.history.shift();
+    $("backBtn").disabled = false;
+  }
+  function goBack() {
+    const prev = state.history.pop();
+    if (!prev) return;
+    state.values = prev.values;
+    SLOTS.forEach((s) => paint(s.key, false));
+    setRound(prev.round);
+    state.n = prev.n;
+    $("cardNum").textContent = String(state.n).padStart(2, "0");
+    nudgeCard();
+    $("backBtn").disabled = state.history.length === 0;
+  }
+
+  // ---------- таймер ----------
+  let tId = null, left = 0, running = false;
+  const fmt = (s) => String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0");
+  function resetTimer() {
+    stopTimer();
+    left = state.round ? state.round.min * 60 : 600;
+    $("timerTime").textContent = fmt(left);
+    $("timerBtn").textContent = "СТАРТ";
+    note.classList.remove("done");
+  }
+  function stopTimer() {
+    clearInterval(tId); tId = null; running = false;
+    $("timerBtn").textContent = left > 0 ? "СТАРТ" : "ЗАНОВО";
+  }
+  function startTimer() {
+    if (left <= 0) { resetTimer(); }
+    running = true;
+    note.classList.remove("done");
+    $("timerBtn").textContent = "ПАУЗА";
+    tId = setInterval(() => {
+      left--;
+      $("timerTime").textContent = fmt(left);
+      if (left <= 0) {
+        stopTimer();
+        $("timerTime").textContent = "ВСЁ";
+        note.classList.add("done");
+        beep();
+      }
+    }, 1000);
+  }
+  function beep() {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      [0, 0.18, 0.36].forEach((d, i) => {
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = "square";
+        o.frequency.value = i === 2 ? 880 : 660;
+        g.gain.setValueAtTime(0.06, ctx.currentTime + d);
+        g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + d + 0.14);
+        o.connect(g); g.connect(ctx.destination);
+        o.start(ctx.currentTime + d); o.stop(ctx.currentTime + d + 0.15);
+      });
+    } catch (e) {}
+  }
+  $("timerBtn").addEventListener("click", () => { running ? stopTimer() : startTimer(); });
+  $("roundBtn").addEventListener("click", rollRound);
+
+  // ---------- копирование ----------
+  function taskText() {
+    const lines = [];
+    SLOTS.forEach((s) => {
+      if (s.chip && !state.enabled[s.key]) return;
+      const v = state.values[s.key];
+      const label = s.label.charAt(0) + s.label.slice(1).toLowerCase();
+      lines.push(label + ": " + textOf(s.key, v));
+      if (s.key === "method") lines.push("Подсказка: " + v.seed);
+    });
+    if (state.enabled.round) lines.push("Раунд: " + state.round.text);
+    return lines.join("\n");
+  }
+  function flashBtn(btn, text) {
+    const old = btn.dataset.label || btn.textContent;
+    btn.dataset.label = old;
+    btn.textContent = text;
+    setTimeout(() => { btn.textContent = old; }, 1400);
+  }
+  $("copyBtn").addEventListener("click", () => {
+    const text = taskText(), btn = $("copyBtn");
+    const fallback = () => {
+      const ta = document.createElement("textarea");
+      ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.select();
+      let ok = false;
+      try { ok = document.execCommand("copy"); } catch (e) {}
+      ta.remove();
+      flashBtn(btn, ok ? "Скопировано" : "Не вышло");
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => flashBtn(btn, "Скопировано"), fallback);
+    } else fallback();
+  });
+
+  // ---------- тема ----------
+  function applyTheme(t) {
+    if (t === "night") document.documentElement.setAttribute("data-theme", "night");
+    else document.documentElement.removeAttribute("data-theme");
+    $("themeBtn").textContent = t === "night" ? "КОБАЛЬТ" : "НОЧЬ";
+  }
+  let theme = store.get("theme", "cobalt");
+  applyTheme(theme);
+  $("themeBtn").addEventListener("click", () => {
+    theme = theme === "night" ? "cobalt" : "night";
+    applyTheme(theme);
+    store.set("theme", theme);
+  });
+
+  // ---------- кнопки и клавиши ----------
+  $("newBtn").addEventListener("click", () => newTask(true));
+  $("backBtn").addEventListener("click", goBack);
+  document.addEventListener("keydown", (e) => {
+    if (e.code !== "Space" || e.repeat) return;
+    const tag = (e.target.tagName || "").toLowerCase();
+    if (tag === "button" || tag === "input" || tag === "textarea") return;
+    e.preventDefault();
+    newTask(true);
+  });
+
+  // ---------- старт ----------
+  applyVisibility();
+  newTask(false);
+  state.history = [];
+  $("backBtn").disabled = true;
+})();
+</script>
+</body>
+</html>
