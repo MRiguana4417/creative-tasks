@@ -189,7 +189,6 @@
     pointer-events: none;
     will-change: transform;
   }
-  .orbit-dot.front { z-index: 2; }
 
   .card-wrap { position: relative; z-index: 1; }
   .card {
@@ -887,14 +886,12 @@
   });
 
   // ---------- точка на орбите ----------
-  // идёт по эллипсу; дальняя половина прячется за карточкой и чипами, ближняя пролетает перед ними
+  // идёт по эллипсу и всегда прячется за карточкой, запиской и чипами, как и сама линия орбиты
   const orbitSvg = document.querySelector(".orbit");
   const orbitDot = $("orbitDot");
   const stageEl = document.querySelector(".stage");
   const O_TILT = -12 * Math.PI / 180, O_PERIOD = 24000, O_START = -2.2;
   const oStart = performance.now();
-  // на телефоне карточка во всю ширину, поэтому точка только выглядывает из-за неё и не перекрывает текст
-  const narrowScreen = window.matchMedia("(max-width: 720px)");
   function placeDot(now) {
     const sr = stageEl.getBoundingClientRect(), r = orbitSvg.getBoundingClientRect();
     const k = (parseFloat(getComputedStyle(orbitSvg).width) || 560) / 560;
@@ -906,7 +903,6 @@
     const y = cy + ex * Math.sin(O_TILT) + ey * Math.cos(O_TILT);
     const depth = Math.sin(t);
     orbitDot.style.transform = "translate(" + x.toFixed(1) + "px," + y.toFixed(1) + "px) scale(" + (1 + 0.18 * depth).toFixed(3) + ")";
-    orbitDot.classList.toggle("front", depth > 0 && !narrowScreen.matches);
   }
   if (reduceMotion) {
     placeDot(oStart);
